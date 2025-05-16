@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - ExamMaster{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Sidebar -->
+    <div class="dashboard-sidebar">
+        <div class="user-profile">
+            <div class="user-avatar">{{ current_user.username[0].upper() }}</div>
+            <h3>{{ current_user.username }}</h3>
+            <p class="user-role">Student</p>
+        </div>
+        <div class="sidebar-menu">
+            <a href="#" class="menu-item active">
+                <i class="fas fa-home"></i>
+                Dashboard
+            </a>
+            <a href="{{ url_for('manage_enrollment') }}" class="menu-item">
+                <i class="fas fa-book"></i>
+                My Modules
+            </a>
+            <!-- Tests Section -->
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <i class="fas fa-clipboard-list"></i>
+                    My Tests
+                </div>
+                {% if upcoming_tests %}
+                    {% for test in upcoming_tests %}
+                        <a href="{{ url_for('start_test', test_id=test.id) }}" class="menu-item sub-item">
+                            <i class="fas fa-pen"></i>
+                            {{ test.title }}
+                        </a>
+                    {% endfor %}
+                {% else %}
+                    <div class="menu-item sub-item disabled">
+                        <i class="fas fa-info-circle"></i>
+                        No tests available
+                    </div>
+                {% endif %}
+            </div>
+            <a href="{{ url_for('profile') }}" class="menu-item">
+                <i class="fas fa-user"></i>
+                Profile
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="dashboard-main">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+            <div class="welcome-content">
+                <h1>Welcome back, {{ current_user.username }}!</h1>
+                <p>Track your progress and manage your upcoming tests</p>
+            </div>
+            <div class="welcome-stats">
+                <div class="stat-card">
+                    <i class="fas fa-book"></i>
+                    <h3>{{ enrolled_modules|length }}</h3>
+                    <p>Enrolled Modules</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>{{ completed_tests|length }}</h3>
+                    <p>Completed Tests</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-clock"></i>
+                    <h3>{{ upcoming_tests|length }}</h3>
+                    <p>Upcoming Tests</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Tests Section -->
+        <section class="dashboard-section">
+            <div class="section-header">
+                <h2>Upcoming Tests</h2>
+                <span class="badge">{{ upcoming_tests|length }} Available</span>
+            </div>
+
+            {% if upcoming_tests %}
+            <div class="test-grid">
+                {% for test in upcoming_tests %}
+                <div class="test-card" onclick="window.location.href='{{ url_for('start_test', test_id=test.id) }}'">
+                    <div class="test-card-header">
+                        <div class="test-subject-icon">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <div class="test-badges">
+                            <span class="badge-module">{{ test.module.code }}</span>
+                            <span class="badge-time">{{ test.time_limit_minutes }} min</span>
+                        </div>
+                    </div>
+                    <div class="test-card-content">
+                        <h3>{{ test.title }}</h3>
+                        <p>{{ test.description or 'No description provided.' }}</p>
+                        <div class="test-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-clock"></i>
+                                <span>{{ test.time_limit_minutes }} Minutes</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-star"></i>
+                                <span>{{ test.passing_score }}% to Pass</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="test-card-footer">
+                        <button class="btn-start-test">
+                            <i class="fas fa-play"></i>
+                            Start Test
+                        </button>
+                        <span class="attempts-left">{{ test.max_attempts - test.attempts|length }} attempts left</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <img src="https://img.freepik.com/free-vector/empty-concept-illustration_114360-1188.jpg?w=740&t=st=1698424001~exp=1698424601~hmac=7f0f8b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b" alt="No tests" class="empty-image">
+                <h3>No Upcoming Tests</h3>
+                <p>You're all caught up! Check back later for new tests.</p>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Recent Activity Section -->
+        <section class="dashboard-section">
+            <div class="section-header">
+                <h2>Recent Activity</h2>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            {% if completed_tests %}
+            <div class="activity-timeline">
+                {% for attempt in completed_tests[:5] %}
+                <div class="activity-item">
+                    <div class="activity-icon {% if attempt.score >= attempt.test.passing_score %}success{% else %}fail{% endif %}">
+                        <i class="fas {% if attempt.score >= attempt.test.passing_score %}fa-check{% else %}fa-times{% endif %}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h4>{{ attempt.test.title }}</h4>
+                        <p>{{ attempt.test.module.name }}</p>
+                        <div class="activity-meta">
+                            <span class="score">Score: {{ "%.1f"|format(attempt.score) }}%</span>
+                            <span class="date">{{ attempt.end_time.strftime('%d %b %Y') }}</span>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('view_test_results', attempt_id=attempt.id) }}" class="btn-view-results">View Results</a>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <img src="https://img.freepik.com/free-vector/empty-concept-illustration_114360-1188.jpg?w=740&t=st=1698424001~exp=1698424601~hmac=7f0f8b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b9b" alt="No activity" class="empty-image">
+                <h3>No Activity Yet</h3>
+                <p>Complete some tests to see your activity here!</p>
+            </div>
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}

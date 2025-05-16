@@ -1,0 +1,190 @@
+/* Custom styles for Online Test Web App */
+
+/* Base styles */
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+/* Navigation styles */
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+/* Card styles */
+.card {
+  transition: all 0.3s ease;
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Button styles */
+.btn-feature {
+  font-weight: 500;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+}
+
+/* Hero section */
+.hero {
+  padding: 5rem 0;
+  background: var(--bs-dark);
+  color: white;
+}
+
+/* Authentication forms */
+.auth-form {
+  max-width: 450px;
+  margin: 0 auto;
+  padding: 2rem;
+  border-radius: 0.5rem;
+}
+
+/* Test-taking interface */
+.question-navigation {
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.question-link {
+  display: block;
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.25rem;
+  color: var(--bs-body-color);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.question-link:hover {
+  background-color: var(--bs-light);
+}
+
+.question-link.active {
+  background-color: var(--bs-primary);
+  color: white;
+}
+
+.question-link.answered {
+  border-left: 4px solid var(--bs-success);
+}
+
+.webcam-container {
+  position: relative;
+  width: 100%;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.webcam-video {
+  width: 100%;
+  border-radius: 0.5rem;
+}
+
+.detection-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.timer-card {
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Lecturer dashboard */
+.stats-card {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.stats-number {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.stats-label {
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+.option-row {
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.option-row:hover {
+  background-color: var(--bs-light);
+}
+
+/* Results visualization */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  margin-bottom: 2rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .hero {
+    padding: 3rem 0;
+  }
+  
+  .stats-number {
+    font-size: 2rem;
+  }
+  
+  .webcam-container {
+    max-height: 200px;
+  }
+  
+  .timer-card {
+    font-size: 1.25rem;
+  }
+}
+
+/* Test feedback styling */
+.feedback-correct {
+  color: var(--bs-success);
+}
+
+.feedback-incorrect {
+  color: var(--bs-danger);
+}
+
+/* Dashboard cards */
+.dashboard-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-card .card-body {
+  flex: 1;
+}
+
+/* Alert container for dynamic alerts */
+#alert-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1050;
+  max-width: 350px;
+}

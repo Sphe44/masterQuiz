@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Register - ExamMaster{% endblock %}
+
+{% block additional_head %}
+<style>
+    .register-container {
+        max-width: 550px;
+        margin: 2rem auto;
+    }
+    
+    .register-card {
+        border: none;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+    
+    .register-header {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .register-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .register-body {
+        padding: 2rem;
+    }
+    
+    .form-control {
+        padding: 0.75rem;
+        font-size: 1rem;
+    }
+    
+    .register-btn {
+        padding: 0.75rem;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    
+    .login-link {
+        text-align: center;
+        margin-top: 1.5rem;
+    }
+    
+    .role-selector {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+    
+    .role-option {
+        flex: 1;
+        text-align: center;
+        padding: 1rem;
+        border: 2px solid #e3e6f0;
+        border-radius: 0.5rem;
+        margin: 0 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .role-option:hover {
+        border-color: var(--primary-color);
+    }
+    
+    .role-option.selected {
+        border-color: var(--primary-color);
+        background-color: rgba(66, 133, 244, 0.1);
+    }
+    
+    .role-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="register-container">
+    <div class="card register-card">
+        <div class="register-header">
+            <div class="register-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h3 class="fw-bold mb-0">Create Your Account</h3>
+            <p class="mb-0">Join our online test platform</p>
+        </div>
+        <div class="register-body">
+            <form method="POST" action="{{ url_for('register') }}" id="registration-form">
+                {{ form.hidden_tag() }}
+                
+                <div class="role-selector">
+                    <div class="role-option" id="student-role" onclick="selectRole('student')">
+                        <div class="role-icon">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <h5>Student</h5>
+                        <p class="text-muted small mb-0">Take tests and track your progress</p>
+                    </div>
+                    <div class="role-option" id="lecturer-role" onclick="selectRole('lecturer')">
+                        <div class="role-icon">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <h5>Lecturer</h5>
+                        <p class="text-muted small mb-0">Create and manage tests</p>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.username.id }}" class="form-label">Username</label>
+                    {{ form.username(class="form-control", placeholder="Choose a username") }}
+                    {% if form.username.errors %}
+                        <div class="text-danger">
+                            {% for error in form.username.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.email.id }}" class="form-label">Email Address</label>
+                    {{ form.email(class="form-control", placeholder="Enter your email") }}
+                    {% if form.email.errors %}
+                        <div class="text-danger">
+                            {% for error in form.email.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <label for="{{ form.password.id }}" class="form-label">Password</label>
+                    {{ form.password(class="form-control", placeholder="Choose a password") }}
+                    {% if form.password.errors %}
+                        <div class="text-danger">
+                            {% for error in form.password.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label for="{{ form.confirm_password.id }}" class="form-label">Confirm Password</label>
+                    {{ form.confirm_password(class="form-control", placeholder="Confirm your password") }}
+                    {% if form.confirm_password.errors %}
+                        <div class="text-danger">
+                            {% for error in form.confirm_password.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="d-none">
+                    {{ form.role }}
+                </div>
+                
+                {{ form.submit(class="btn btn-primary w-100 register-btn") }}
+            </form>
+            
+            <div class="login-link">
+                <p>Already have an account? <a href="{{ url_for('login') }}" class="text-decoration-none">Login here</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function selectRole(role) {
+        // Clear previous selection
+        document.getElementById('student-role').classList.remove('selected');
+        document.getElementById('lecturer-role').classList.remove('selected');
+        
+        // Set new selection
+        document.getElementById(role + '-role').classList.add('selected');
+        
+        // Update hidden field
+        document.getElementById('{{ form.role.id }}').value = role;
+    }
+    
+    // Set default selection (student)
+    document.addEventListener('DOMContentLoaded', function() {
+        selectRole('student');
+    });
+</script>
+{% endblock %}

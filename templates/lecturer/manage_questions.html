@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Questions - {{ test.title }} - Online Test Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb bg-light rounded px-3 py-2">
+            <li class="breadcrumb-item"><a href="{{ url_for('lecturer_dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Manage Questions</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Manage Questions: {{ test.title }}</h1>
+    </div>
+
+    <div class="row">
+        <!-- Questions List -->
+        <div class="col-md-5 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
+                    <h4 class="mb-0">Current Questions</h4>
+                    <span class="badge bg-light text-dark">{{ questions|length }} Questions</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if questions %}
+                        <div class="list-group list-group-flush">
+                            {% for question in questions %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h5 class="mb-1">Q{{ loop.index }}. {{ question.text|truncate(50) }}</h5>
+                                            <div class="d-flex mb-2">
+                                                <span class="badge bg-info text-dark me-2">{{ question.question_type|replace('_', ' ')|title }}</span>
+                                                <span class="badge bg-success">{{ question.points }} point{% if question.points != 1 %}s{% endif %}</span>
+                                            </div>
+                                        </div>
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary edit-question" data-question-id="{{ question.id }}"><i class="bi bi-pencil"></i></button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger delete-question" data-question-id="{{ question.id }}"><i class="bi bi-trash"></i></button>
+                                        </div>
+                                    </div>
+                                    {% if question.question_type == 'multiple_choice' %}
+                                        <div class="bg-light p-2 mt-2 rounded">
+                                            <small class="text-muted">Options:</small>
+                                            <ul class="mb-0 list-unstyled ps-2">
+                                                {% for option in question.options %}
+                                                    <li class="{% if option.is_correct %}text-success{% endif %}">
+                                                        {{ option.text|truncate(30) }}
+                                                        {% if option.is_correct %}<i class="bi bi-check-circle-fill ms-1"></i>{% endif %}
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% elif question.question_type == 'true_false' %}
+                                        <div class="text-muted mt-2"><i class="bi bi-check2-circle"></i> Correct answer: {{ 'True' if question.correct_answer else 'False' }}</div>
+                                    {% elif question.question_type == 'short_answer' %}
+                                        <div class="text-muted mt-2"><i class="bi bi-pencil-square"></i> Expected answer: {{ question.correct_answer }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="p-4 text-center">
+                            <i class="bi bi-question-circle display-4 mb-3 text-muted"></i>
+                            <p>No questions added yet. Use the form to add questions.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('lecturer_dashboard') }}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Question Form -->
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header bg-primary text-white"><h4 class="mb-0">Add New Question</h4></div>
+                <div class="card-body">
+                    <form method="POST" id="question-form">
+                        {{ form.hidden_tag() }}
+
+                        <!-- Question Text -->
+                        <div class="mb-3">
+                            {{ form.text.label(class="form-label") }}
+                            {{ form.text(class="form-control", rows=3) }}
+                        </div>
+
+                        <!-- Type and Points -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                {{ form.question_type.label(class="form-label") }}
+                                {{ form.question_type(class="form-select", id="question_type") }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.points.label(class="form-label") }}
+                                {{ form.points(class="form-control", value=1, id="points") }}
+                            </div>
+                        </div>
+
+                        <!-- Multiple Choice Options -->
+                        <div id="options-section" class="mb-4 d-none">
+                            <label class="form-label d-flex justify-content-between align-items-center">
+                                <span>Answer Options</span>
+                                <button id="add-option" type="button" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-plus-circle me-1"></i>Add Option
+                                </button>
+                            </label>
+                            <div id="options-container" class="mb-2"></div>
+                            <div class="form-text text-muted">
+                                <i class="bi bi-info-circle me-1"></i>Add at least 2 options and mark the correct one(s).
+                            </div>
+                        </div>
+
+                        <!-- True/False Input -->
+                        <div id="true-false-section" class="mb-4 d-none">
+                            <label class="form-label">Correct Answer</label>
+                            <div>
+                                <label class="me-3"><input type="radio" name="correct_answer" value="true" checked> True</label>
+                                <label><input type="radio" name="correct_answer" value="false"> False</label>
+                            </div>
+                        </div>
+
+                        <!-- Short Answer Input -->
+                        <div id="short-answer-section" class="mb-4 d-none">
+                            <label class="form-label">Correct Answer</label>
+                            <input type="text" name="correct_answer_text" class="form-control" placeholder="Type the correct short answer">
+                        </div>
+
+                        <!-- Submit -->
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-primary", id="submit-btn") }}
+                        </div>
+                    </form>
+
+                    <div class="mt-4 p-3 bg-light border rounded">
+                        <h6><i class="bi bi-lightbulb me-2"></i>Tips for Good Questions</h6>
+                        <ul class="small mb-0">
+                            <li>Use simple and direct language</li>
+                            <li>Clearly identify the correct answer(s)</li>
+                            <li>Use points that match difficulty</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const questionTypeField = document.getElementById('question_type');
+        const optionsSection = document.getElementById('options-section');
+        const trueFalseSection = document.getElementById('true-false-section');
+        const shortAnswerSection = document.getElementById('short-answer-section');
+        const optionsContainer = document.getElementById('options-container');
+        const addOptionBtn = document.getElementById('add-option');
+
+        function showSection(type) {
+            optionsSection.classList.add('d-none');
+            trueFalseSection.classList.add('d-none');
+            shortAnswerSection.classList.add('d-none');
+
+            if (type === 'multiple_choice') {
+                optionsSection.classList.remove('d-none');
+            } else if (type === 'true_false') {
+                trueFalseSection.classList.remove('d-none');
+            } else if (type === 'short_answer') {
+                shortAnswerSection.classList.remove('d-none');
+            }
+        }
+
+        // Initialize on load
+        showSection(questionTypeField.value);
+
+        questionTypeField.addEventListener('change', () => {
+            showSection(questionTypeField.value);
+        });
+
+        addOptionBtn.addEventListener('click', function () {
+            const optionIndex = optionsContainer.children.length;
+            const row = document.createElement('div');
+            row.classList.add('input-group', 'mb-2', 'option-row');
+
+            row.innerHTML = `
+                <input type="text" name="options[${optionIndex}][text]" class="form-control option-text" placeholder="Option text" required>
+                <div class="input-group-text">
+                    <input class="form-check-input mt-0 is-correct" type="checkbox" name="options[${optionIndex}][is_correct]">
+                </div>
+                <button type="button" class="btn btn-outline-danger remove-option"><i class="bi bi-x"></i></button>
+            `;
+
+            optionsContainer.appendChild(row);
+
+            row.querySelector('.remove-option').addEventListener('click', () => row.remove());
+        });
+
+        // Add default options if type is multiple_choice
+        if (questionTypeField.value === 'multiple_choice') {
+            addOptionBtn.click();
+            addOptionBtn.click();
+        }
+    });
+</script>
+{% endblock %}

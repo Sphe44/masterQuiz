@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}My Modules - ExamMaster{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="header-content">
+        <h1>My Modules</h1>
+        <p class="text-muted">Manage your course enrollments and access your learning materials</p>
+    </div>
+</div>
+
+<div class="modules-grid">
+    {% if available_modules %}
+        {% for module in available_modules %}
+            <div class="module-card">
+                <div class="module-card-header">
+                    <div class="module-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="module-status">
+                        {% if module.id|string in enrolled_module_ids %}
+                            <span class="status enrolled">Enrolled</span>
+                        {% else %}
+                            <span class="status available">Available</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="module-card-body">
+                    <h3 class="module-title">{{ module.name }}</h3>
+                    <div class="module-code">{{ module.code }}</div>
+                    <p class="module-description">{{ module.description or 'No description available.' }}</p>
+
+                    <div class="module-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>{{ module.tests|length }} Tests</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-users"></i>
+                            <span>{{ module.enrolled_students.count() }} Students</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="module-card-footer">
+                    <form method="POST" action="{{ url_for('manage_enrollment') }}">
+                        {{ form.hidden_tag() }}
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" 
+                                   name="modules" value="{{ module.id }}"
+                                   {% if module.id|string in enrolled_module_ids %}checked{% endif %}
+                                   onchange="this.form.submit()">
+                            <label class="form-check-label">
+                                {{ 'Enrolled' if module.id|string in enrolled_module_ids else 'Enroll' }}
+                            </label>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-books fa-3x"></i>
+            <h3>No Modules Available</h3>
+            <p>There are currently no modules available for enrollment.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

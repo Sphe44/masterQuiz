@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Manage Modules</h1>
+        <a href="{{ url_for('admin_create_module') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create New Module
+        </a>
+    </div>
+    
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5>All Modules ({{ modules|length }})</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Lecturer</th>
+                            <th>Students</th>
+                            <th>Tests</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for module in modules %}
+                        <tr>
+                            <td><strong>{{ module.code }}</strong></td>
+                            <td>{{ module.name }}</td>
+                            <td>
+                                {% if module.lecturer %}
+                                    {{ module.lecturer.username }}
+                                {% else %}
+                                    <span class="text-muted">Unassigned</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ module.enrolled_students.count() }}</td>
+                            <td>{{ module.tests|length }}</td>
+                            <td>{{ module.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('admin_edit_module', module_id=module.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    {% if module.tests|length == 0 %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteModuleModal{{ module.id }}">
+                                        <i class="fas fa-trash-alt"></i> Delete
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Delete Modal -->
+                                <div class="modal fade" id="deleteModuleModal{{ module.id }}" tabindex="-1" aria-labelledby="deleteModuleModalLabel{{ module.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="deleteModuleModalLabel{{ module.id }}">Confirm Deletion</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                Are you sure you want to delete the module <strong>{{ module.code }}: {{ module.name }}</strong>?<br>
+                                                This action cannot be undone.
+                                                
+                                                {% if module.enrolled_students.count() > 0 %}
+                                                <div class="alert alert-warning mt-3">
+                                                    <strong>Warning:</strong> This module has {{ module.enrolled_students.count() }} enrolled student(s).
+                                                    They will be unenrolled automatically.
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('admin_delete_module', module_id=module.id) }}" method="POST">
+                                                    <button type="submit" class="btn btn-danger">Delete Module</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

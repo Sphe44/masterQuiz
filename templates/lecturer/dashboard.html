@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+
+{% block title %}Lecturer Dashboard - ExamMaster{% endblock %}
+
+{% block additional_head %}
+<style>
+    .dashboard-header {
+        background-color: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .welcome-message {
+        margin-bottom: 0;
+    }
+    
+    .module-card {
+        height: 100%;
+        transition: transform 0.3s ease;
+    }
+    
+    .module-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .module-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .module-icon {
+        width: 48px;
+        height: 48px;
+        background-color: #4e73df;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.5rem;
+    }
+    
+    .test-card {
+        border: none;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        margin-bottom: 1rem;
+        transition: transform 0.3s ease;
+    }
+    
+    .test-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .test-card-header {
+        background-color: white;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        font-weight: 700;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .module-badge {
+        background-color: #4e73df;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+    }
+    
+    .test-details {
+        display: flex;
+        margin-top: 1rem;
+    }
+    
+    .test-detail {
+        flex: 1;
+        text-align: center;
+        padding: 0.5rem;
+        border-right: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .test-detail:last-child {
+        border-right: none;
+    }
+    
+    .test-detail-label {
+        font-size: 0.8rem;
+        color: #858796;
+        margin-bottom: 0.25rem;
+    }
+    
+    .test-detail-value {
+        font-weight: 700;
+        font-size: 1rem;
+    }
+    
+    .status-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .status-active {
+        background-color: #1cc88a;
+        color: white;
+    }
+    
+    .status-inactive {
+        background-color: #858796;
+        color: white;
+    }
+    
+    .no-modules-message {
+        text-align: center;
+        padding: 2rem;
+        background-color: #f8f9fc;
+        border-radius: 0.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    .stats-card {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        height: 100%;
+    }
+    
+    .stats-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stats-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .actions-card {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .action-button {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: var(--text-color);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .action-button:hover {
+        background-color: #f8f9fc;
+        transform: translateX(5px);
+    }
+    
+    .action-icon {
+        width: 40px;
+        height: 40px;
+        background-color: #4e73df;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        font-size: 1.2rem;
+    }
+    
+    .action-text {
+        flex: 1;
+    }
+    
+    .action-text h5 {
+        margin-bottom: 0.25rem;
+    }
+    
+    .action-text p {
+        margin-bottom: 0;
+        font-size: 0.9rem;
+        color: #858796;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h3 class="fw-bold mb-2">Welcome, {{ current_user.username }}!</h3>
+            <p class="welcome-message text-muted">Manage your modules and tests from your dashboard.</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="{{ url_for('create_test') }}" class="btn btn-primary me-2">
+                <i class="fas fa-plus-circle me-1"></i> Create Test
+            </a>
+            <a href="{{ url_for('create_module') }}" class="btn btn-outline-primary">
+                <i class="fas fa-book me-1"></i> Create Module
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Stats Section -->
+    <div class="col-md-8">
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-icon text-primary">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="stats-number">{{ modules|length }}</div>
+                    <div class="text-muted">Modules</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-icon text-success">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <div class="stats-number">{{ tests|length }}</div>
+                    <div class="text-muted">Tests Created</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <div class="stats-icon text-warning">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stats-number">{{ student_count }}</div>
+                    <div class="text-muted">Students Enrolled</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Tests Section -->
+        <h4 class="fw-bold mb-3">Recent Tests</h4>
+        {% if tests %}
+            <div class="row">
+                {% for test in tests[:4] %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card test-card">
+                            <div class="card-header test-card-header">
+                                <h5 class="mb-0">{{ test.title }}</h5>
+                                <span class="status-badge {% if test.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                    {% if test.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                <span class="module-badge mb-2">{{ test.module.code }}: {{ test.module.name }}</span>
+                                <p class="mb-0">{{ test.description or 'No description provided.' }}</p>
+                                
+                                <div class="test-details">
+                                    <div class="test-detail">
+                                        <div class="test-detail-label">Questions</div>
+                                        <div class="test-detail-value">{{ test.questions|length }}</div>
+                                    </div>
+                                    <div class="test-detail">
+                                        <div class="test-detail-label">Time Limit</div>
+                                        <div class="test-detail-value">{{ test.time_limit_minutes }} min</div>
+                                    </div>
+                                    <div class="test-detail">
+                                        <div class="test-detail-label">Attempts</div>
+                                        <div class="test-detail-value">{{ test.attempts|length }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent border-top-0 text-end">
+                                <a href="{{ url_for('manage_questions', test_id=test.id) }}" class="btn btn-outline-primary me-2">
+                                    <i class="fas fa-edit me-1"></i> Edit
+                                </a>
+                                <a href="{{ url_for('view_results', test_id=test.id) }}" class="btn btn-primary">
+                                    <i class="fas fa-chart-line me-1"></i> Results
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            {% if tests|length > 4 %}
+                <div class="text-center mb-4">
+                    <a href="{{ url_for('manage_modules') }}" class="btn btn-outline-primary">
+                        View All Tests
+                    </a>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="no-modules-message">
+                <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                <h5>No tests created</h5>
+                <p class="text-muted">You haven't created any tests yet.</p>
+                <a href="{{ url_for('create_test') }}" class="btn btn-primary mt-2">
+                    <i class="fas fa-plus-circle me-1"></i> Create Test
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Quick Actions Section -->
+    <div class="col-md-4">
+        <div class="actions-card">
+            <h4 class="fw-bold mb-3">Quick Actions</h4>
+            
+            <a href="{{ url_for('create_test') }}" class="action-button">
+                <div class="action-icon">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="action-text">
+                    <h5>Create Test</h5>
+                    <p>Create a new test for your students</p>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            
+            <a href="{{ url_for('create_module') }}" class="action-button">
+                <div class="action-icon" style="background-color: #36b9cc;">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="action-text">
+                    <h5>Create Module</h5>
+                    <p>Add a new module to your courses</p>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            
+            <a href="{{ url_for('manage_modules') }}" class="action-button">
+                <div class="action-icon" style="background-color: #1cc88a;">
+                    <i class="fas fa-cog"></i>
+                </div>
+                <div class="action-text">
+                    <h5>Manage Modules</h5>
+                    <p>Edit or update your existing modules</p>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            
+            <a href="#" class="action-button">
+                <div class="action-icon" style="background-color: #f6c23e;">
+                    <i class="fas fa-download"></i>
+                </div>
+                <div class="action-text">
+                    <h5>Export Results</h5>
+                    <p>Download test results and analytics</p>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+        <!-- My Modules Section -->
+        <h4 class="fw-bold mb-3">My Modules</h4>
+        {% if modules %}
+            {% for module in modules %}
+                <div class="card module-card mb-3">
+                    <div class="card-body">
+                        <div class="module-header">
+                            <div class="module-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title mb-0">{{ module.name }}</h5>
+                                <span class="text-muted">{{ module.code }}</span>
+                            </div>
+                        </div>
+                        <p class="mb-2 small text-muted">{{ module.description|truncate(100) or 'No description provided.' }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><strong>{{ module.tests|length }}</strong> tests</span>
+                            <a href="{{ url_for('module_details', module_id=module.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i> View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            <div class="text-center mt-3">
+                <a href="{{ url_for('manage_modules') }}" class="btn btn-outline-primary btn-sm">
+                    View All Modules
+                </a>
+            </div>
+        {% else %}
+            <div class="no-modules-message">
+                <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                <h5>No modules created</h5>
+                <p class="text-muted">You haven't created any modules yet.</p>
+                <a href="{{ url_for('create_module') }}" class="btn btn-primary mt-2">
+                    <i class="fas fa-plus-circle me-1"></i> Create Module
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

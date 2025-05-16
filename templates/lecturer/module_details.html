@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}{{ module.code }} - {{ module.name }} - Online Test Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('lecturer_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('manage_modules') }}">Modules</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ module.code }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-2">{{ module.code }}: {{ module.name }}</h1>
+            {% if module.description %}
+                <p class="lead">{{ module.description }}</p>
+            {% endif %}
+        </div>
+        <div class="col-md-4 text-md-end d-flex flex-column justify-content-center">
+            <div class="btn-group" role="group">
+                <a href="{{ url_for('edit_module', module_id=module.id) }}" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil me-2"></i>Edit Module
+                </a>
+                <a href="{{ url_for('create_test_for_module', module_id=module.id) }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Create Test
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Module Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-light text-center stats-card shadow-sm">
+                <div class="card-body text-dark">
+                    <div class="stats-number">{{ module.tests|length }}</div>
+                    <div class="stats-label">Tests</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-light text-center stats-card shadow-sm">
+                <div class="card-body text-dark">
+                    <div class="stats-number">{{ module.enrolled_students.count() }}</div>
+                    <div class="stats-label">Enrolled Students</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-light text-center stats-card shadow-sm">
+                <div class="card-body text-dark">
+                    <div class="stats-number">
+                        {% set total_attempts = namespace(count=0) %}
+                        {% for test in module.tests %}
+                            {% set total_attempts.count = total_attempts.count + test.attempts|length %}
+                        {% endfor %}
+                        {{ total_attempts.count }}
+                    </div>
+                    <div class="stats-label">Test Attempts</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-light text-center stats-card shadow-sm">
+                <div class="card-body text-dark">
+                    <div class="stats-number">
+                        {% if total_attempts.count > 0 %}
+                            {% set total_score = namespace(sum=0) %}
+                            {% set completed_attempts = namespace(count=0) %}
+                            {% for test in module.tests %}
+                                {% for attempt in test.attempts %}
+                                    {% if attempt.is_completed %}
+                                        {% set completed_attempts.count = completed_attempts.count + 1 %}
+                                        {% set total_score.sum = total_score.sum + attempt.score %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                            {% if completed_attempts.count > 0 %}
+                                {{ "%.1f"|format(total_score.sum / completed_attempts.count) }}%
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </div>
+                    <div class="stats-label">Avg. Score</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Module Tests -->
+    <h2 class="mb-3">Tests in this Module</h2>
+    {% if module.tests %}
+        <div class="card bg-light mb-4 shadow-sm">
+            <div class="card-body p-0 text-dark">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Created</th>
+                                <th>Due Date</th>
+                                <th>Questions</th>
+                                <th>Attempts</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for test in module.tests %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ test.title }}</div>
+                                        <div class="small text-muted">{{ test.description|truncate(50) if test.description else '-' }}</div>
+                                    </td>
+                                    <td>{{ test.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ test.due_date.strftime('%Y-%m-%d') if test.due_date else 'No deadline' }}</td>
+                                    <td>{{ test.questions|length }}</td>
+                                    <td>{{ test.attempts|length }}</td>
+                                    <td>
+                                        {% if test.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('manage_questions', test_id=test.id) }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Manage Questions">
+                                                <i class="bi bi-list-check"></i>
+                                            </a>
+                                            <a href="{{ url_for('view_results', test_id=test.id) }}" class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="View Results">
+                                                <i class="bi bi-graph-up"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info mb-4">
+            <i class="bi bi-info-circle me-2"></i>This module doesn't have any tests yet. 
+            <a href="{{ url_for('create_test_for_module', module_id=module.id) }}" class="alert-link">Create your first test</a>.
+        </div>
+    {% endif %}
+    
+    <!-- Enrolled Students -->
+    <h2 class="mb-3">Enrolled Students</h2>
+    {% if module.enrolled_students.count() > 0 %}
+        <div class="card bg-light mb-4 shadow-sm">
+            <div class="card-body p-0 text-dark">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Email</th>
+                                <th>Tests Attempted</th>
+                                <th>Average Score</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in module.enrolled_students %}
+                                <tr>
+                                    <td>{{ student.username }}</td>
+                                    <td>{{ student.email }}</td>
+                                    <td>
+                                        {% set attempted_tests = namespace(count=0) %}
+                                        {% for test in module.tests %}
+                                            {% for attempt in test.attempts %}
+                                                {% if attempt.student_id == student.id %}
+                                                    {% set attempted_tests.count = attempted_tests.count + 1 %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endfor %}
+                                        {{ attempted_tests.count }} / {{ module.tests|length }}
+                                    </td>
+                                    <td>
+                                        {% set completed_attempts = namespace(count=0, sum=0) %}
+                                        {% for test in module.tests %}
+                                            {% for attempt in test.attempts %}
+                                                {% if attempt.student_id == student.id and attempt.is_completed %}
+                                                    {% set completed_attempts.count = completed_attempts.count + 1 %}
+                                                    {% set completed_attempts.sum = completed_attempts.sum + attempt.score %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endfor %}
+                                        
+                                        {% if completed_attempts.count > 0 %}
+                                            {{ "%.1f"|format(completed_attempts.sum / completed_attempts.count) }}%
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>No students are enrolled in this module yet.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

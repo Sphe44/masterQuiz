@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if is_edit %}Edit Module{% else %}Create Module{% endif %} - Online Test Platform
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('lecturer_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('manage_modules') }}">Modules</a></li>
+            <li class="breadcrumb-item active" aria-current="page">
+                {% if is_edit %}Edit Module{% else %}Create Module{% endif %}
+            </li>
+        </ol>
+    </nav>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2 class="mb-0">{% if is_edit %}Edit Module{% else %}Create Module{% endif %}</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.code.label(class="form-label") }}
+                    {% if form.code.errors %}
+                        {{ form.code(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.code.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.code(class="form-control") }}
+                    {% endif %}
+                    <div class="form-text">Short code for the module (e.g., CS101, MATH202)</div>
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.name.label(class="form-label") }}
+                    {% if form.name.errors %}
+                        {{ form.name(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.name.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.name(class="form-control") }}
+                    {% endif %}
+                    <div class="form-text">Full name of the module (e.g., "Introduction to Computer Science")</div>
+                </div>
+                
+                <div class="mb-4">
+                    {{ form.description.label(class="form-label") }}
+                    {% if form.description.errors %}
+                        {{ form.description(class="form-control is-invalid", rows=4) }}
+                        <div class="invalid-feedback">
+                            {% for error in form.description.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.description(class="form-control", rows=4) }}
+                    {% endif %}
+                    <div class="form-text">Optional: Describe the content and objectives of this module</div>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{{ url_for('manage_modules') }}" class="btn btn-outline-secondary">Cancel</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if not is_edit and available_modules %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="mb-0">Take Existing Module</h3>
+        </div>
+        <div class="card-body">
+            <p class="mb-3">If you want to teach an existing module instead of creating a new one, you can select from the list below:</p>
+            
+            <div class="list-group mb-4">
+                {% for module in available_modules %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ module.code }}</strong>: {{ module.name }}
+                        {% if module.description %}
+                        <p class="mb-0 small text-muted">{{ module.description|truncate(100) }}</p>
+                        {% endif %}
+                    </div>
+                    <a href="{{ url_for('take_module', module_id=module.id) }}" class="btn btn-sm btn-success">
+                        <i class="bi bi-check-circle me-1"></i>Take
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">About Modules</h4>
+        </div>
+        <div class="card-body">
+            <p>Modules represent the courses or subjects that you teach. Creating modules allows you to:</p>
+            <ul>
+                <li>Organize your tests by subject</li>
+                <li>Allow students to enroll in specific subjects</li>
+                <li>Track student performance across related tests</li>
+            </ul>
+            <p>After creating a module, you can create tests for it, and students will be able to enroll in it to access those tests.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Test Results - Online Test Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('student_dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Test Results</li>
+                </ol>
+            </nav>
+            
+            <h1 class="mb-3">Test Results: {{ test.title }}</h1>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h2 class="display-1 mb-3 {% if passed %}text-success{% else %}text-danger{% endif %}">{{ "%.1f"|format(attempt.score) }}%</h2>
+                    <div class="badge {% if passed %}bg-success{% else %}bg-danger{% endif %} p-2 fs-6 mb-3">
+                        {% if passed %}Passed{% else %}Failed{% endif %}
+                    </div>
+                    <p class="mb-1">Passing score: {{ test.passing_score }}%</p>
+                    <p class="mb-1">Completed on: {{ attempt.end_time.strftime('%Y-%m-%d %H:%M') }}</p>
+                    <p class="mb-0">Time taken: {{ ((attempt.end_time - attempt.start_time).total_seconds() / 60)|round|int }} minutes</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="mb-3">Performance Summary</h4>
+                    
+                    {% set correct_count = 0 %}
+                    {% set incorrect_count = 0 %}
+                    {% set unanswered_count = 0 %}
+                    
+                    {% for question in questions %}
+                        {% set answer = answers.get(question.id) %}
+                        {% if answer %}
+                            {% if answer.points_earned|float > 0 %}
+                                {% set correct_count = correct_count + 1 %}
+                            {% else %}
+                                {% set incorrect_count = incorrect_count + 1 %}
+                            {% endif %}
+                        {% else %}
+                            {% set unanswered_count = unanswered_count + 1 %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-4 text-center">
+                            <div class="fs-1 text-success">{{ correct_count }}</div>
+                            <div>Correct</div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="fs-1 text-danger">{{ incorrect_count }}</div>
+                            <div>Incorrect</div>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="fs-1 text-muted">{{ unanswered_count }}</div>
+                            <div>Unanswered</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="student-performance-chart" 
+                                data-correct="{{ correct_count }}" 
+                                data-incorrect="{{ incorrect_count }}" 
+                                data-unanswered="{{ unanswered_count }}">
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">Detailed Results</h4>
+        </div>
+        <div class="card-body">
+            <div class="accordion" id="resultsAccordion">
+                {% for question in questions %}
+                {% set answer = answers.get(question.id) %}
+                <div class="accordion-item border-0 mb-3">
+                    <h2 class="accordion-header" id="heading{{ question.id }}">
+                        <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ question.id }}" aria-expanded="{{ 'true' if loop.first else 'false' }}" aria-controls="collapse{{ question.id }}">
+                            <div class="d-flex justify-content-between w-100 align-items-center pe-3">
+                                <span>Question {{ loop.index }}</span>
+                                {% if answer %}
+                                    {% if answer.points_earned|float > 0 %}
+                                        <span class="badge bg-success">Correct</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Incorrect</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-secondary">Unanswered</span>
+                                {% endif %}
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapse{{ question.id }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" aria-labelledby="heading{{ question.id }}" data-bs-parent="#resultsAccordion">
+                        <div class="accordion-body">
+                            <p class="lead">{{ question.text }}</p>
+                            
+                            {% if question.question_type == 'multiple_choice' %}
+                                <div class="mb-3">
+                                    {% for option in question.options %}
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" disabled 
+                                                   {% if answer and answer.selected_option_id == option.id %}checked{% endif %}>
+                                            <label class="form-check-label 
+                                                    {% if option.is_correct %}text-success{% endif %}
+                                                    {% if answer and answer.selected_option_id == option.id and not option.is_correct %}text-danger{% endif %}">
+                                                {{ option.text }}
+                                                {% if option.is_correct %}<i class="bi bi-check-circle-fill text-success ms-1"></i>{% endif %}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                
+                                {% if answer %}
+                                    {% if answer.points_earned|float > 0 %}
+                                        <div class="alert alert-success">
+                                            <i class="bi bi-check-circle me-2"></i>You answered correctly! ({{ answer.points_earned }} points)
+                                        </div>
+                                    {% else %}
+                                        <div class="alert alert-danger">
+                                            <i class="bi bi-x-circle me-2"></i>Your answer was incorrect.
+                                            {% for option in question.options %}
+                                                {% if option.is_correct %}
+                                                    <div>The correct answer was: {{ option.text }}</div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="alert alert-secondary">
+                                        <i class="bi bi-dash-circle me-2"></i>You did not answer this question.
+                                        {% for option in question.options %}
+                                            {% if option.is_correct %}
+                                                <div>The correct answer was: {{ option.text }}</div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center">
+        <a href="{{ url_for('student_dashboard') }}" class="btn btn-primary">
+            <i class="bi bi-house me-2"></i>Return to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/results-chart.js') }}"></script>
+{% endblock %}

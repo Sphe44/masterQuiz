@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Create Test - Online Test Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('lecturer_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Create Test</li>
+        </ol>
+    </nav>
+    
+    <h1 class="mb-4">Create New Test</h1>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.module_id.label(class="form-label") }}
+                    {% if form.module_id.errors %}
+                        {{ form.module_id(class="form-select is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.module_id.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.module_id(class="form-select") }}
+                    {% endif %}
+                    <div class="form-text">Select which module this test belongs to</div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.title.label(class="form-label") }}
+                    {% if form.title.errors %}
+                        {{ form.title(class="form-control is-invalid") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.title.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.title(class="form-control") }}
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.description.label(class="form-label") }}
+                    {% if form.description.errors %}
+                        {{ form.description(class="form-control is-invalid", rows=3) }}
+                        <div class="invalid-feedback">
+                            {% for error in form.description.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.description(class="form-control", rows=3) }}
+                    {% endif %}
+                    <div class="form-text">Provide clear instructions for students</div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        {{ form.time_limit_minutes.label(class="form-label") }}
+                        {% if form.time_limit_minutes.errors %}
+                            {{ form.time_limit_minutes(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.time_limit_minutes.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.time_limit_minutes(class="form-control", value=60) }}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-4">
+                        {{ form.max_attempts.label(class="form-label") }}
+                        {% if form.max_attempts.errors %}
+                            {{ form.max_attempts(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.max_attempts.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.max_attempts(class="form-control", value=1) }}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-4">
+                        {{ form.passing_score.label(class="form-label") }}
+                        {% if form.passing_score.errors %}
+                            {{ form.passing_score(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.passing_score.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.passing_score(class="form-control", value=60) }}
+                        {% endif %}
+                        <div class="form-text">Minimum percentage to pass</div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    {{ form.due_date.label(class="form-label") }}
+                    {% if form.due_date.errors %}
+                        {{ form.due_date(class="form-control is-invalid", type="datetime-local") }}
+                        <div class="invalid-feedback">
+                            {% for error in form.due_date.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        {{ form.due_date(class="form-control", type="datetime-local") }}
+                    {% endif %}
+                    <div class="form-text">Leave blank for no deadline</div>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{{ url_for('lecturer_dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">What's Next?</h4>
+        </div>
+        <div class="card-body">
+            <p>After creating your test, you'll be able to:</p>
+            <ol>
+                <li>Add multiple-choice questions</li>
+                <li>Set correct answers and point values</li>
+                <li>Preview the test as students will see it</li>
+                <li>Monitor results and student performance</li>
+            </ol>
+            <p>The system will automatically grade multiple-choice questions upon submission.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

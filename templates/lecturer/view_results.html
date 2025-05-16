@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+
+{% block title %}Test Results: {{ test.title }} - Online Test Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('lecturer_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Test Results</li>
+        </ol>
+    </nav>
+    
+    <h1 class="mb-4">Results: {{ test.title }}</h1>
+    
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-dark text-center stats-card">
+                <div class="card-body">
+                    <div class="stats-number">{{ num_attempts }}</div>
+                    <div class="stats-label">Total Attempts</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-dark text-center stats-card">
+                <div class="card-body">
+                    <div class="stats-number">{{ "%.1f"|format(avg_score) }}%</div>
+                    <div class="stats-label">Average Score</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-dark text-center stats-card">
+                <div class="card-body">
+                    <div class="stats-number">{{ "%.1f"|format(passing_rate) }}%</div>
+                    <div class="stats-label">Passing Rate</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-dark text-center stats-card">
+                <div class="card-body">
+                    <div class="stats-number">{{ test.passing_score }}%</div>
+                    <div class="stats-label">Passing Score</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts and Visualizations -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-dark">
+                <div class="card-header">
+                    <h4 class="mb-0">Score Distribution</h4>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="score-distribution-chart" data-distribution='{{ score_distribution }}'></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card bg-dark">
+                <div class="card-header">
+                    <h4 class="mb-0">Question Analysis</h4>
+                </div>
+                <div class="card-body">
+                    {% if questions %}
+                        <div class="chart-container">
+                            {% set question_data = [] %}
+                            {% for question in questions %}
+                                {% set correct_count = 0 %}
+                                {% set attempt_count = 0 %}
+                                
+                                {% for attempt in attempts %}
+                                    {% for answer in attempt.answers %}
+                                        {% if answer.question_id == question.id %}
+                                            {% set attempt_count = attempt_count + 1 %}
+                                            {% if answer.points_earned > 0 %}
+                                                {% set correct_count = correct_count + 1 %}
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                                
+                                {% if attempt_count > 0 %}
+                                    {% set _ = question_data.append({
+                                        'id': question.id,
+                                        'correct_count': correct_count,
+                                        'attempt_count': attempt_count
+                                    }) %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <canvas id="question-difficulty-chart" data-questions='{{ question_data|tojson }}'></canvas>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>No question data available yet.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Results Table -->
+    <div class="card bg-dark mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Student Attempts</h4>
+            <button class="btn btn-sm btn-outline-primary" id="export-csv">
+                <i class="bi bi-download me-1"></i>Export CSV
+            </button>
+        </div>
+        <div class="card-body p-0">
+            {% if attempts %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Date Submitted</th>
+                                <th>Time Taken</th>
+                                <th>Score</th>
+                                <th>Status</th>
+                                <th>Face Detection</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in attempts %}
+                                {% set violations = attempt.face_logs|selectattr('status', 'in', ['no_face', 'multiple_faces', 'tab_switch'])|list|length %}
+                                <tr>
+                                    <td>{{ attempt.student.username }}</td>
+                                    <td>{{ attempt.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>{{ ((attempt.end_time - attempt.start_time).total_seconds() / 60)|round|int }} min</td>
+                                    <td>{{ "%.2f"|format(attempt.score) }}%</td>
+                                    <td>
+                                        {% if attempt.score >= test.passing_score %}
+                                            <span class="badge bg-success">Passed</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Failed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if violations > 0 %}
+                                            <span class="badge bg-warning">{{ violations }} violation{% if violations != 1 %}s{% endif %}</span>
+                                        {% else %}
+                                            <span class="badge bg-success">OK</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-primary view-details" data-attempt-id="{{ attempt.id }}" data-bs-toggle="modal" data-bs-target="#attemptDetailsModal">
+                                            <i class="bi bi-eye me-1"></i>Details
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-4 text-center">
+                    <i class="bi bi-clipboard-data display-4 mb-3 text-muted"></i>
+                    <p>No student attempts yet. Once students take the test, their results will appear here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Back to Dashboard Button -->
+    <div class="text-center">
+        <a href="{{ url_for('lecturer_dashboard') }}" class="btn btn-primary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+    
+    <!-- Attempt Details Modal -->
+    <div class="modal fade" id="attemptDetailsModal" tabindex="-1" aria-labelledby="attemptDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="attemptDetailsModalLabel">Attempt Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <h6>Student Information</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Name:</strong> <span id="modal-student-name"></span></p>
+                                <p><strong>Email:</strong> <span id="modal-student-email"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Score:</strong> <span id="modal-score"></span></p>
+                                <p><strong>Start Time:</strong> <span id="modal-start-time"></span></p>
+                                <p><strong>End Time:</strong> <span id="modal-end-time"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h6>Question Results</h6>
+                    <div id="modal-questions" class="accordion mb-4">
+                        <!-- Question details will be inserted here -->
+                    </div>
+                    
+                    <h6>Face Detection Logs</h6>
+                    <div id="modal-face-logs">
+                        <!-- Face detection logs will be inserted here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/results-chart.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // View Details Button Handlers
+        const viewDetailsButtons = document.querySelectorAll('.view-details');
+        viewDetailsButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const attemptId = this.dataset.attemptId;
+                
+                // Fetch attempt details
+                fetch(`/api/attempt/${attemptId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Populate modal with data
+                        document.getElementById('modal-student-name').textContent = data.student.username;
+                        document.getElementById('modal-student-email').textContent = data.student.email;
+                        document.getElementById('modal-score').textContent = data.score.toFixed(2) + '%';
+                        document.getElementById('modal-start-time').textContent = new Date(data.start_time).toLocaleString();
+                        document.getElementById('modal-end-time').textContent = new Date(data.end_time).toLocaleString();
+                        
+                        // Populate questions
+                        const questionsContainer = document.getElementById('modal-questions');
+                        questionsContainer.innerHTML = '';
+                        
+                        data.answers.forEach((answer, index) => {
+                            const question = answer.question;
+                            const isCorrect = answer.points_earned > 0;
+                            
+                            const accordionItem = document.createElement('div');
+                            accordionItem.className = 'accordion-item bg-dark-subtle border-0 mb-2';
+                            accordionItem.innerHTML = `
+                                <h2 class="accordion-header" id="question-heading-${question.id}">
+                                    <button class="accordion-button collapsed bg-dark-subtle" type="button" data-bs-toggle="collapse" data-bs-target="#question-collapse-${question.id}" aria-expanded="false" aria-controls="question-collapse-${question.id}">
+                                        <div class="d-flex justify-content-between w-100 align-items-center pe-3">
+                                            <span>Question ${index + 1}</span>
+                                            <span class="badge ${isCorrect ? 'bg-success' : 'bg-danger'}">
+                                                ${isCorrect ? 'Correct' : 'Incorrect'}
+                                            </span>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="question-collapse-${question.id}" class="accordion-collapse collapse" aria-labelledby="question-heading-${question.id}" data-bs-parent="#modal-questions">
+                                    <div class="accordion-body">
+                                        <p>${question.text}</p>
+                                        <p><strong>Points:</strong> ${answer.points_earned} / ${question.points}</p>
+                                        
+                                        ${question.question_type === 'multiple_choice' ? `
+                                            <h6>Options:</h6>
+                                            <ul>
+                                                ${question.options.map(option => `
+                                                    <li class="${option.is_correct ? 'text-success' : ''} ${(answer.selected_option_id === option.id && !option.is_correct) ? 'text-danger' : ''}">
+                                                        ${option.text}
+                                                        ${option.is_correct ? '<i class="bi bi-check-circle-fill ms-1"></i>' : ''}
+                                                        ${(answer.selected_option_id === option.id && !option.is_correct) ? '<i class="bi bi-x-circle-fill ms-1"></i>' : ''}
+                                                        ${(answer.selected_option_id === option.id) ? ' (Selected)' : ''}
+                                                    </li>
+                                                `).join('')}
+                                            </ul>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `;
+                            
+                            questionsContainer.appendChild(accordionItem);
+                        });
+                        
+                        // Populate face logs
+                        const faceLogsContainer = document.getElementById('modal-face-logs');
+                        
+                        if (data.face_logs && data.face_logs.length > 0) {
+                            // Create table for face logs
+                            const table = document.createElement('table');
+                            table.className = 'table table-sm table-hover';
+                            table.innerHTML = `
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Status</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.face_logs.map(log => `
+                                        <tr class="${getRowClassForStatus(log.status)}">
+                                            <td>${new Date(log.timestamp).toLocaleTimeString()}</td>
+                                            <td>${formatStatus(log.status)}</td>
+                                            <td>${log.details || '-'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            `;
+                            
+                            faceLogsContainer.innerHTML = '';
+                            faceLogsContainer.appendChild(table);
+                        } else {
+                            faceLogsContainer.innerHTML = '<div class="alert alert-info">No face detection logs available for this attempt.</div>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching attempt details:', error);
+                        alert('Error loading attempt details. Please try again.');
+                    });
+            });
+        });
+        
+        // Utility functions for face logs formatting
+        function getRowClassForStatus(status) {
+            if (status === 'face_detected') return '';
+            if (['no_face', 'multiple_faces', 'tab_switch'].includes(status)) return 'table-danger';
+            return 'table-warning';
+        }
+        
+        function formatStatus(status) {
+            return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+        
+        // Export to CSV functionality
+        document.getElementById('export-csv').addEventListener('click', function() {
+            // Create CSV content
+            let csvContent = 'Student,Email,Date,Score,Status,Time Taken (min)\n';
+            
+            // Get table data
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const student = row.cells[0].textContent;
+                const email = row.cells[0].textContent + '@example.com'; // This is a placeholder, real data would come from API
+                const date = row.cells[1].textContent;
+                const score = row.cells[3].textContent;
+                const status = row.cells[4].textContent.trim();
+                const timeTaken = row.cells[2].textContent;
+                
+                csvContent += `"${student}","${email}","${date}","${score}","${status}","${timeTaken}"\n`;
+            });
+            
+            // Create download link
+            const encodedUri = encodeURI('data:text/csv;charset=utf-8,' + csvContent);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', `${document.title.split('-')[0].trim()}_results.csv`);
+            document.body.appendChild(link);
+            
+            // Trigger download and cleanup
+            link.click();
+            document.body.removeChild(link);
+        });
+    });
+</script>
+{% endblock %}

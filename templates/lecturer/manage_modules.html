@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Modules - Online Test Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('lecturer_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Modules</li>
+        </ol>
+    </nav>
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">Your Modules</h1>
+        <a href="{{ url_for('create_module') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Create Module
+        </a>
+    </div>
+    
+    {% if modules %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+            {% for module in modules %}
+                <div class="col">
+                    <div class="card dashboard-card">
+                        <div class="card-header">
+                            <h4 class="mb-0">{{ module.code }}</h4>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ module.name }}</h5>
+                            {% if module.description %}
+                                <p class="card-text">{{ module.description }}</p>
+                            {% endif %}
+                            
+                            <!-- Module Stats -->
+                            <div class="row g-2 mb-3 text-center">
+                                <div class="col-6">
+                                    <div class="p-2 bg-dark-subtle rounded">
+                                        <div class="fs-4">{{ module.tests|length }}</div>
+                                        <div class="small text-muted">Tests</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-dark-subtle rounded">
+                                        <div class="fs-4">{{ module.enrolled_students.count() }}</div>
+                                        <div class="small text-muted">Students</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('module_details', module_id=module.id) }}" class="btn btn-outline-primary">
+                                    <i class="bi bi-eye me-2"></i>View Details
+                                </a>
+                                <a href="{{ url_for('create_test_for_module', module_id=module.id) }}" class="btn btn-outline-success">
+                                    <i class="bi bi-pencil-square me-2"></i>Create Test
+                                </a>
+                            </div>
+                        </div>
+                        <div class="card-footer text-muted">
+                            Created: {{ module.created_at.strftime('%Y-%m-%d') }}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info mb-4">
+            <i class="bi bi-info-circle me-2"></i>You haven't created any modules yet. Click the "Create Module" button to get started.
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4 class="mb-0">What are Modules?</h4>
+            </div>
+            <div class="card-body">
+                <p>Modules represent the courses or subjects that you teach. Creating modules allows you to:</p>
+                <ul>
+                    <li>Organize your tests by subject</li>
+                    <li>Allow students to enroll in specific subjects</li>
+                    <li>Track student performance across related tests</li>
+                </ul>
+                <p>After creating a module, you can create tests for it, and students will be able to enroll in it to access those tests.</p>
+                <div class="d-grid gap-2 col-md-6 mx-auto mt-4">
+                    <a href="{{ url_for('create_module') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle me-2"></i>Create Your First Module
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    
+    {% if available_modules %}
+    <h2 class="mt-5 mb-4">Available Pre-loaded Modules</h2>
+    <p class="mb-4">These modules are available for you to teach. Click "Take" to add them to your modules.</p>
+    
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-5">
+        {% for module in available_modules %}
+            <div class="col">
+                <div class="card dashboard-card border-secondary">
+                    <div class="card-header bg-secondary text-white">
+                        <h4 class="mb-0">{{ module.code }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">{{ module.name }}</h5>
+                        {% if module.description %}
+                            <p class="card-text">{{ module.description }}</p>
+                        {% endif %}
+                        
+                        <!-- Module Stats -->
+                        <div class="row g-2 mb-3 text-center">
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded border">
+                                    <div class="fs-4">{{ module.tests|length }}</div>
+                                    <div class="small text-muted">Tests</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded border">
+                                    <div class="fs-4">{{ module.enrolled_students.count() }}</div>
+                                    <div class="small text-muted">Students</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <a href="{{ url_for('take_module', module_id=module.id) }}" class="btn btn-success">
+                                <i class="bi bi-check-circle me-2"></i>Take This Module
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-footer text-muted">
+                        Created: {{ module.created_at.strftime('%Y-%m-%d') }}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,91 @@
+/* Light theme override */
+
+/* Replace dark backgrounds with light ones */
+.bg-dark {
+  background-color: var(--card-bg) !important;
+  color: var(--text-color) !important;
+}
+
+.bg-dark-subtle {
+  background-color: var(--muted-bg) !important;
+  color: var(--text-color) !important;
+}
+
+/* Card styles */
+.card {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+}
+
+.card-header {
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+  font-weight: bold;
+}
+
+/* List group item styling */
+.list-group-item {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+/* Form elements */
+.form-control {
+  background-color: var(--white);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.form-control:focus {
+  background-color: var(--white);
+  color: var(--text-color);
+}
+
+/* Table styling */
+.table {
+  color: var(--text-color);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: var(--off-white);
+}
+
+/* Accordion styling */
+.accordion-button {
+  background-color: var(--secondary-color) !important;
+  color: var(--text-color) !important;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: var(--secondary-color) !important;
+  color: var(--primary-color) !important;
+}
+
+.accordion-item {
+  background-color: var(--card-bg) !important;
+  color: var(--text-color) !important;
+}
+
+/* Modal styling */
+.modal-content {
+  background-color: var(--card-bg) !important;
+  color: var(--text-color) !important;
+}
+
+/* Ensure dark text on light backgrounds for better readability */
+.text-white {
+  color: var(--text-color) !important;
+}
+
+/* Stats card styling */
+.stats-card {
+  background-color: var(--card-bg) !important;
+  color: var(--text-color) !important;
+}
+
+/* Maintain contrast for badges and colored elements */
+.badge-dark {
+  background-color: var(--primary-color);
+  color: var(--white);
+}

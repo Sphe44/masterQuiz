@@ -1,0 +1,84 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Profile - ExamMaster{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg rounded-3">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <div class="profile-avatar mb-3">
+                            {{ user.username[0].upper() }}
+                        </div>
+                        <h2 class="fw-bold mb-1">{{ user.username }}</h2>
+                        <span class="badge bg-primary px-3 py-2 rounded-pill">{{ user.role.title() }}</span>
+                    </div>
+
+                    <div class="profile-info mt-5">
+                        <div class="info-item mb-4">
+                            <div class="d-flex align-items-center">
+                                <div class="info-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="text-muted mb-1">Email Address</h6>
+                                    <p class="h5 mb-0">{{ user.email }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="info-item mb-4">
+                            <div class="d-flex align-items-center">
+                                <div class="info-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="text-muted mb-1">Member Since</h6>
+                                    <p class="h5 mb-0">{{ user.date_registered.strftime('%B %d, %Y') }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if user.is_student() %}
+                        <div class="info-item mb-4">
+                            <div class="d-flex align-items-center">
+                                <div class="info-icon">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="text-muted mb-1">Enrolled Modules</h6>
+                                    <p class="h5 mb-0">{{ user.enrolled_modules.count() }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if user.is_lecturer() %}
+                        <div class="info-item mb-4">
+                            <div class="d-flex align-items-center">
+                                <div class="info-icon">
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="text-muted mb-1">Teaching Modules</h6>
+                                    <p class="h5 mb-0">{{ user.taught_modules|length }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="text-center mt-5">
+                        <a href="{{ url_for('edit_profile') }}" class="btn btn-primary btn-lg px-5">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

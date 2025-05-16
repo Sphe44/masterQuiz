@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Login - ExamMaster{% endblock %}
+
+{% block additional_head %}
+<style>
+    .login-container {
+        max-width: 450px;
+        margin: 2rem auto;
+    }
+    
+    .login-card {
+        border: none;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+    
+    .login-header {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .login-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .login-body {
+        padding: 2rem;
+    }
+    
+    .form-control {
+        padding: 0.75rem;
+        font-size: 1rem;
+    }
+    
+    .login-btn {
+        padding: 0.75rem;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    
+    .register-link {
+        text-align: center;
+        margin-top: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="card login-card">
+        <div class="login-header">
+            <div class="login-icon">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <h3 class="fw-bold mb-0">Welcome Back</h3>
+            <p class="mb-0">Please login to your account</p>
+        </div>
+        <div class="login-body">
+            <form method="POST" action="{{ url_for('login') }}">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    <label for="{{ form.email.id }}" class="form-label">Email Address</label>
+                    {{ form.email(class="form-control", placeholder="Enter your email") }}
+                    {% if form.email.errors %}
+                        <div class="text-danger">
+                            {% for error in form.email.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label for="{{ form.password.id }}" class="form-label">Password</label>
+                    {{ form.password(class="form-control", placeholder="Enter your password") }}
+                    {% if form.password.errors %}
+                        <div class="text-danger">
+                            {% for error in form.password.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                {{ form.submit(class="btn btn-primary w-100 login-btn") }}
+            </form>
+            
+            <div class="register-link">
+                <p>Don't have an account? <a href="{{ url_for('register') }}" class="text-decoration-none">Register here</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

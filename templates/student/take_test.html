@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Take Test: {{ test.title }} - Online Test Platform{% endblock %}
+
+{% block styles %}
+<style>
+    .navbar, .footer {
+        display: none;
+    }
+    body {
+        padding-top: 0;
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="test-container">
+    <!-- Test Header -->
+    <div class="test-header">
+        <div class="test-info">
+            <h2>{{ test.title }}</h2>
+            <p class="module-info">{{ test.module.code }}: {{ test.module.name }}</p>
+        </div>
+        <div class="test-timer">
+            <div class="timer-display" id="timer-display">00:00:00</div>
+            <p class="timer-label">Time Remaining</p>
+        </div>
+    </div>
+
+    <div class="test-content">
+        <!-- Sidebar -->
+        <div class="test-sidebar">
+            <!-- Webcam Monitor -->
+            <div class="webcam-section">
+                <div class="webcam-container">
+                    <video id="webcam-video" autoplay muted playsinline></video>
+                    <canvas id="detection-canvas"></canvas>
+                </div>
+                <div class="detection-status">
+                    <span id="face-detection-status" class="status-badge">Initializing...</span>
+                </div>
+            </div>
+
+            <!-- Question Navigation -->
+            <div class="question-nav">
+                <h3>Questions</h3>
+                <div class="question-list" id="question-navigation">
+                    {% for question in questions %}
+                        <button class="question-btn" data-question-id="{{ question.id }}">
+                            <span class="question-number">{{ loop.index }}</span>
+                            <span class="question-status"></span>
+                        </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <button id="submit-test" class="submit-btn">
+                <i class="bi bi-check2-circle"></i>
+                Submit Test
+            </button>
+        </div>
+
+        <!-- Main Question Area -->
+        <div class="question-area">
+            <form id="test-form" data-attempt-id="{{ attempt.id }}" data-remaining-seconds="{{ remaining_seconds }}">
+                {% for question in questions %}
+                    <div id="question-{{ question.id }}" class="question-container">
+                        <div class="question-header">
+                            <span class="question-indicator">Question {{ loop.index }} of {{ questions|length }}</span>
+                            <span class="points-badge">{{ question.points }} points</span>
+                        </div>
+
+                        <div class="question-content">
+                            <p class="question-text">{{ question.text }}</p>
+
+                            {% if question.question_type == 'multiple_choice' %}
+                                <div class="options-list">
+                                    {% for option in question.options %}
+                                        <label class="option-item">
+                                            <input type="radio" name="question-{{ question.id }}" value="{{ option.id }}">
+                                            <span class="option-text">{{ option.text }}</span>
+                                        </label>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="question-navigation">
+                            {% if not loop.first %}
+                                <button type="button" class="nav-btn prev-btn" onclick="document.querySelector('.question-btn:nth-child({{ loop.index - 1 }})').click()">
+                                    <i class="bi bi-arrow-left"></i> Previous
+                                </button>
+                            {% endif %}
+
+                            {% if not loop.last %}
+                                <button type="button" class="nav-btn next-btn" onclick="document.querySelector('.question-btn:nth-child({{ loop.index + 1 }})').click()">
+                                    Next <i class="bi bi-arrow-right"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+                <input type="hidden" id="api-token" value="{{ token }}">
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+<script src="{{ url_for('static', filename='js/face-detection.js') }}"></script>
+<script src="{{ url_for('static', filename='js/test-taking.js') }}"></script>
+
+<!-- Disable right-click -->
+<script>
+    document.addEventListener('contextmenu', event => event.preventDefault());
+</script>
+{% endblock %}
